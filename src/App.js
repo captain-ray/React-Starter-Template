@@ -1,26 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { PureComponent } from 'react';
 import './App.css';
+import { Switch, Route, Redirect } from 'react-router-dom';
+import { connect } from 'react-redux';
+import * as actions from './store/actions';
+import Layout from './hoc/Layout';
+import LoginPage from './containers/LoginPage';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends PureComponent {
+  state = {}
+
+  componentDidMount() {
+    this.props.onTryAutoLogin();
+  }
+
+  render() {
+
+    let routes = (
+      <LoginPage />
+    )
+    
+    if (this.props.isAuthenticated) {
+      routes = (
+        <Switch>
+          <Route path="/login" component={LoginPage} />
+          <Route path="/" component={Layout} />
+          <Redirect to="/" />
+        </Switch>
+      )
+    }
+
+    return (
+      <div className="App">
+        {routes}
+      </div>
+    );
+  }
 }
 
-export default App;
+const mapStateToProps = (state) => {
+  const authReducer = state.get("authReducer");
+  return {
+    isAuthenticated: authReducer.get("isAuthenticated"),
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onTryAutoLogin: () => dispatch(actions.checkAuthState())
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
